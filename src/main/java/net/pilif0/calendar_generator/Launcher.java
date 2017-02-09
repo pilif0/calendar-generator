@@ -6,7 +6,9 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
 import java.time.LocalDate;
@@ -51,11 +53,11 @@ public class Launcher extends Application {
     @Override
     public void start(Stage primaryStage) {
         //Prepare the main pane
-        ScrollPane root = new ScrollPane();
+        StackPane root = new StackPane();
         root.setPadding(new Insets(10));
 
         //Fill the scroll pane
-        root.setContent(buildEventForm());
+        root.getChildren().add(buildEventForm());
 
         //Finalize the window
         Scene scene = new Scene(root/*, WIDTH, HEIGHT*/);
@@ -77,41 +79,114 @@ public class Launcher extends Application {
         result.setHgap(5);
         result.setVgap(5);
 
+        //Constrain the columns
+        ColumnConstraints col1 = new ColumnConstraints();
+        col1.setPercentWidth(25);
+        ColumnConstraints col2 = new ColumnConstraints();
+        col2.setPercentWidth(25);
+        ColumnConstraints col3 = new ColumnConstraints();
+        col3.setPercentWidth(25);
+        ColumnConstraints col4 = new ColumnConstraints();
+        col4.setPercentWidth(25);
+        result.getColumnConstraints().addAll(col1, col2, col3, col4);
+
         //Prepare row pointer
         int row = 0;
 
-        //Add the title input
+        //Create title label
+        Label titleL = new Label("Title:");
+        result.add(titleL, 0, row);
+
+        //Create title input
         TextField titleField = new TextField("Untitled event");
         titleField.setId("title-field");
         titleField.requestFocus();
-        //titleField.setPrefColumnCount(32);
-        result.add(titleField,0, row, 4, 1);
+        result.add(titleField, 1, row, 3, 1);
 
-        //Add start date input
+        //Create start datetime label
+        Label startL = new Label("Start:");
+
+        //Create start date input
         DatePicker startDate = new DatePicker(LocalDate.now());
         startDate.setId("start-date");
-        result.add(startDate, 0, ++row, 1, 1);
 
-        //Add start time input
+        //Create start time input
         TextField startTime = new TextField(/*TODO add current time*/);
         startTime.setId("start-time");
         startTime.setPrefColumnCount(5);
-        result.add(startTime, 1, row, 1, 1);
-        
-        //Add end date input
+
+        //Add start datetime row
+        result.addRow(++row, startL, startDate, startTime);
+
+        //Create start datetime label
+        Label endL = new Label("End:");
+
+        //Create end date input
         DatePicker endDate = new DatePicker(LocalDate.now());
         endDate.setId("end-date");
-        result.add(endDate, 2, row, 1, 1);
 
-        //Add end time input
+        //Create end time input
         TextField endTime = new TextField(/*TODO add current time*/);
         endTime.setId("end-time");
         endTime.setPrefColumnCount(5);
-        result.add(endTime, 3, row, 1, 1);
 
-        //TODO add repetition settings
-        //  selection of days of the week to repeat on
-        //  selection of datetime interval over which to spread
+        //Add end datetime row
+        result.addRow(++row, endL, endDate, endTime);
+
+        //Add separation row
+        Label empty1 = new Label();
+        result.addRow(++row, empty1);
+
+        //Add repetition label
+        Label repetitionL = new Label("Repetition:");
+        result.add(repetitionL, 0, ++row);
+
+        //Add a checkbox for each day of the week
+        CheckBox boxMo = new CheckBox("Monday");
+        boxMo.setId("box-mo");
+        result.add(boxMo, 1, ++row);
+        CheckBox boxTu = new CheckBox("Tuesday");
+        boxMo.setId("box-tu");
+        result.add(boxTu, 1, ++row);
+        CheckBox boxWe = new CheckBox("Wednesday");
+        boxMo.setId("box-we");
+        result.add(boxWe, 1, ++row);
+        CheckBox boxTh = new CheckBox("Thursday");
+        boxMo.setId("box-th");
+        result.add(boxTh, 1, ++row);
+        CheckBox boxFr = new CheckBox("Friday");
+        boxMo.setId("box-fr");
+        result.add(boxFr, 1, ++row);
+        CheckBox boxSa = new CheckBox("Saturday");
+        boxMo.setId("box-sa");
+        result.add(boxSa, 1, ++row);
+        CheckBox boxSu = new CheckBox("Sunday");
+        boxMo.setId("box-su");
+        result.add(boxSu, 1, ++row);
+
+        //Create repetition start date label
+        Label repetitionStartL = new Label("From:");
+
+        //Create repetition start date input
+        DatePicker repetitionStart = new DatePicker();
+        repetitionStart.setId("repetition-start");
+
+        //Add repetition start date row
+        result.addRow(++row, repetitionStartL, repetitionStart);
+
+        //Create repetition end date label
+        Label repetitionEndL = new Label("To:");
+
+        //Create repetition end date input
+        DatePicker repetitionEnd = new DatePicker();
+        repetitionEnd.setId("repetition-end");
+
+        //Add repetition end date row
+        result.addRow(++row, repetitionEndL, repetitionEnd);
+
+        //Add separation row
+        Label empty2 = new Label();
+        result.addRow(++row, empty2);
 
         //Add location label
         Label locationL = new Label("Location:");
