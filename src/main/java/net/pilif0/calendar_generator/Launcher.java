@@ -8,10 +8,14 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
+import javafx.util.StringConverter;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 
 /**
@@ -27,6 +31,29 @@ public class Launcher extends Application {
     public static final int HEIGHT = 500;
     /** The window title */
     public static final String TITLE = "Calendar generator";
+    /** The time formatter */
+    public static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ISO_LOCAL_TIME;
+    /** The time to use as "now" */
+    public static final LocalTime NOW_TIME = LocalTime
+            .now()
+            .withSecond(0)
+            .withNano(0);
+    /** The date formatter */
+    public static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ISO_LOCAL_DATE;
+    /** The date to use as "today" */
+    public static final LocalDate NOW_DATE = LocalDate.now();
+    /** The date string converter */
+    public static final StringConverter<LocalDate> DATE_CONVERTER = new StringConverter<LocalDate>(){
+        @Override
+        public String toString(LocalDate object) {
+            return object.format(DATE_FORMAT);
+        }
+
+        @Override
+        public LocalDate fromString(String string) {
+            return LocalDate.parse(string, DATE_FORMAT);
+        }
+    };
 
     /** Whether debug mode is enabled */
     public static boolean debug = false;
@@ -88,7 +115,6 @@ public class Launcher extends Application {
         col3.setPercentWidth(25);
         ColumnConstraints col4 = new ColumnConstraints();
         col4.setPercentWidth(25);
-        result.getColumnConstraints().addAll(col1, col2, col3, col4);
 
         //Prepare row pointer
         int row = 0;
@@ -107,11 +133,12 @@ public class Launcher extends Application {
         Label startL = new Label("Start:");
 
         //Create start date input
-        DatePicker startDate = new DatePicker(LocalDate.now());
+        DatePicker startDate = new DatePicker(NOW_DATE);
+        startDate.setConverter(DATE_CONVERTER);
         startDate.setId("start-date");
 
         //Create start time input
-        TextField startTime = new TextField(/*TODO add current time*/);
+        TextField startTime = new TextField(NOW_TIME.format(TIME_FORMAT));
         startTime.setId("start-time");
         startTime.setPrefColumnCount(5);
 
@@ -122,11 +149,12 @@ public class Launcher extends Application {
         Label endL = new Label("End:");
 
         //Create end date input
-        DatePicker endDate = new DatePicker(LocalDate.now());
+        DatePicker endDate = new DatePicker(NOW_DATE);
+        endDate.setConverter(DATE_CONVERTER);
         endDate.setId("end-date");
 
         //Create end time input
-        TextField endTime = new TextField(/*TODO add current time*/);
+        TextField endTime = new TextField(NOW_TIME.plusHours(1).format(TIME_FORMAT));
         endTime.setId("end-time");
         endTime.setPrefColumnCount(5);
 
@@ -144,7 +172,7 @@ public class Launcher extends Application {
         //Add a checkbox for each day of the week
         CheckBox boxMo = new CheckBox("Monday");
         boxMo.setId("box-mo");
-        result.add(boxMo, 1, ++row);
+        result.add(boxMo, 1, row);
         CheckBox boxTu = new CheckBox("Tuesday");
         boxMo.setId("box-tu");
         result.add(boxTu, 1, ++row);
@@ -168,7 +196,8 @@ public class Launcher extends Application {
         Label repetitionStartL = new Label("From:");
 
         //Create repetition start date input
-        DatePicker repetitionStart = new DatePicker();
+        DatePicker repetitionStart = new DatePicker(NOW_DATE);
+        repetitionStart.setConverter(DATE_CONVERTER);
         repetitionStart.setId("repetition-start");
 
         //Add repetition start date row
@@ -178,7 +207,8 @@ public class Launcher extends Application {
         Label repetitionEndL = new Label("To:");
 
         //Create repetition end date input
-        DatePicker repetitionEnd = new DatePicker();
+        DatePicker repetitionEnd = new DatePicker(NOW_DATE.plusWeeks(1));
+        repetitionEnd.setConverter(DATE_CONVERTER);
         repetitionEnd.setId("repetition-end");
 
         //Add repetition end date row
@@ -215,17 +245,20 @@ public class Launcher extends Application {
         resetB.setOnAction(e -> System.out.println("Reset pressed")/*TODO add proper handler*/);
         result.add(resetB, 0, ++row, 1, 1);
 
-        //Add export to existing button
+        //Create export to existing button
         Button exportToExistingB = new Button("Export to existing");
         exportToExistingB.setId("export-to-existing-button");
         exportToExistingB.setOnAction(e -> System.out.println("Export to existing pressed")/*TODO add proper handler*/);
-        result.add(exportToExistingB, 2, row, 1, 1);
 
-        //Add export to new button
+        //Export export to new button
         Button exportToNewB = new Button("Export to new");
         exportToNewB.setId("export-to-new-button");
         exportToNewB.setOnAction(e -> System.out.println("Export to new pressed")/*TODO add proper handler*/);
-        result.add(exportToNewB, 3, row, 1, 1);
+
+        //Add both export buttons to the right-bottom corner
+        HBox exportButtons = new HBox(exportToExistingB, exportToNewB);
+        exportButtons.setAlignment(Pos.BASELINE_RIGHT);
+        result.add(exportButtons, 3, row);
 
         return result;
     }
