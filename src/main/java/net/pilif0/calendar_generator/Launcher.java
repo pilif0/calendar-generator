@@ -4,6 +4,7 @@ import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.ColumnConstraints;
@@ -16,7 +17,9 @@ import javafx.util.StringConverter;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * Launches the GUI
@@ -125,7 +128,7 @@ public class Launcher extends Application {
 
         //Create title input
         TextField titleField = new TextField("Untitled event");
-        titleField.setId("title-field");
+        titleField.setId("title");
         titleField.requestFocus();
         result.add(titleField, 1, row, 3, 1);
 
@@ -174,22 +177,22 @@ public class Launcher extends Application {
         boxMo.setId("box-mo");
         result.add(boxMo, 1, row);
         CheckBox boxTu = new CheckBox("Tuesday");
-        boxMo.setId("box-tu");
+        boxTu.setId("box-tu");
         result.add(boxTu, 1, ++row);
         CheckBox boxWe = new CheckBox("Wednesday");
-        boxMo.setId("box-we");
+        boxWe.setId("box-we");
         result.add(boxWe, 1, ++row);
         CheckBox boxTh = new CheckBox("Thursday");
-        boxMo.setId("box-th");
+        boxTh.setId("box-th");
         result.add(boxTh, 1, ++row);
         CheckBox boxFr = new CheckBox("Friday");
-        boxMo.setId("box-fr");
+        boxFr.setId("box-fr");
         result.add(boxFr, 1, ++row);
         CheckBox boxSa = new CheckBox("Saturday");
-        boxMo.setId("box-sa");
+        boxSa.setId("box-sa");
         result.add(boxSa, 1, ++row);
         CheckBox boxSu = new CheckBox("Sunday");
-        boxMo.setId("box-su");
+        boxSu.setId("box-su");
         result.add(boxSu, 1, ++row);
 
         //Create repetition start date label
@@ -236,24 +239,24 @@ public class Launcher extends Application {
         description.setId("description");
         result.add(description, 1, row, 3, 2);
 
-        //Iterate row again because of rowspan of description
+        //Iterate row again because of row span of description
         row++;
 
         //Add reset button
         Button resetB = new Button("Reset");
         resetB.setId("reset-button");
-        resetB.setOnAction(e -> System.out.println("Reset pressed")/*TODO add proper handler*/);
+        resetB.setOnAction(e -> reset(result));
         result.add(resetB, 0, ++row, 1, 1);
 
         //Create export to existing button
         Button exportToExistingB = new Button("Export to existing");
         exportToExistingB.setId("export-to-existing-button");
-        exportToExistingB.setOnAction(e -> System.out.println("Export to existing pressed")/*TODO add proper handler*/);
+        exportToExistingB.setOnAction(e -> exportToExisting(result));
 
         //Export export to new button
         Button exportToNewB = new Button("Export to new");
         exportToNewB.setId("export-to-new-button");
-        exportToNewB.setOnAction(e -> System.out.println("Export to new pressed")/*TODO add proper handler*/);
+        exportToNewB.setOnAction(e -> exportToNew(result));
 
         //Add both export buttons to the right-bottom corner
         HBox exportButtons = new HBox(exportToExistingB, exportToNewB);
@@ -261,5 +264,199 @@ public class Launcher extends Application {
         result.add(exportButtons, 3, row);
 
         return result;
+    }
+
+    /**
+     * Converts information from the form into a list of {@code Event} objects
+     *
+     * @param root The root of the form
+     * @return The {@code Event} objects
+     */
+    private static List<Event> convert(Parent root){
+        //Find the title
+        String title = ((TextField) root.lookup("#title")).getText();
+
+        //Find the start date
+        LocalDate startDate = ((DatePicker) root.lookup("#start-date")).getValue();
+
+        //Find the end date
+        LocalDate endDate = ((DatePicker) root.lookup("#end-date")).getValue();
+
+        //Find the start time
+        LocalTime startTime = LocalTime.parse(((TextField) root.lookup("#start-time")).getText(), TIME_FORMAT);
+
+        //Find the end time
+        LocalTime endTime = LocalTime.parse(((TextField) root.lookup("#end-time")).getText(), TIME_FORMAT);
+
+        //Find the location
+        String location = ((TextField) root.lookup("#location")).getText();
+
+        //Find the description
+        String description = ((TextArea) root.lookup("#description")).getText();
+
+        //Find the repeat values for each day
+        boolean[] repeat = new boolean[7];
+        repeat[0] = ((CheckBox) root.lookup("#box-mo")).isSelected();
+        repeat[1] = ((CheckBox) root.lookup("#box-tu")).isSelected();
+        repeat[2] = ((CheckBox) root.lookup("#box-we")).isSelected();
+        repeat[3] = ((CheckBox) root.lookup("#box-th")).isSelected();
+        repeat[4] = ((CheckBox) root.lookup("#box-fr")).isSelected();
+        repeat[5] = ((CheckBox) root.lookup("#box-sa")).isSelected();
+        repeat[6] = ((CheckBox) root.lookup("#box-su")).isSelected();
+        boolean shouldRepeat = repeat[0] || repeat[1] || repeat[2] || repeat[3] || repeat[4] || repeat[5] || repeat[6];
+
+        //Find the repeat from date
+        LocalDate repeatFrom = ((DatePicker) root.lookup("#repetition-start")).getValue();
+
+        //Find the repeat to date
+        LocalDate repeatTo = ((DatePicker) root.lookup("#repetition-end")).getValue();
+
+        //DEBUG: print the data
+        if(debug) {
+            String debugMsg = (new StringBuilder("Form -> Event conversion:")).append(System.lineSeparator())
+                    .append("Title: ").append(title).append(System.lineSeparator())
+                    .append("Start date: ").append(DATE_FORMAT.format(startDate)).append(System.lineSeparator())
+                    .append("Start time: ").append(TIME_FORMAT.format(startTime)).append(System.lineSeparator())
+                    .append("End date: ").append(DATE_FORMAT.format(endDate)).append(System.lineSeparator())
+                    .append("End time: ").append(TIME_FORMAT.format(endTime)).append(System.lineSeparator())
+                    .append("Location: ").append(location).append(System.lineSeparator())
+                    .append("Description: ").append(description).append(System.lineSeparator())
+                    .append("Repeat: ").append(Arrays.toString(repeat)).append(System.lineSeparator())
+                    .append("Repeat start date: ").append(DATE_FORMAT.format(repeatFrom)).append(System.lineSeparator())
+                    .append("Repeat end date: ").append(DATE_FORMAT.format(repeatTo)).append(System.lineSeparator())
+                    .toString();
+            System.out.println(debugMsg);
+        }
+
+        //Prepare result
+        List<Event> result = new ArrayList<>();
+
+        //Handle repetition
+        if(shouldRepeat){
+            //Case: repetition requested
+
+            //Iterate for each day between bounds (inclusive start, exclusive end)
+            LocalDate current = repeatFrom;
+            while(current.isEqual(repeatFrom)
+                    || (current.isAfter(repeatFrom) && current.isBefore(repeatTo))){
+                //Check whether that day of the week should repeat
+                if(repeat[current.getDayOfWeek().getValue() - 1]){
+                    //Create the event at that day
+                    Event event = new Event(
+                            title,
+                            current,
+                            current.plusDays(endDate.toEpochDay() - startDate.toEpochDay()),
+                            startTime,
+                            endTime,
+                            location,
+                            description);
+                    result.add(event);
+                }
+
+                //Increase day
+                current = current.plusDays(1);
+            }
+        }else{
+            //Case: no repetition
+            Event event = new Event(
+                    title,
+                    startDate,
+                    endDate,
+                    startTime,
+                    endTime,
+                    location,
+                    description);
+            result.add(event);
+        }
+
+        //DEBUG: print number of events created
+        if(debug){
+            System.out.printf("Converted form into %d event(s)\n", result.size());
+        }
+
+        return result;
+    }
+
+    /**
+     * Exports the event(s) to a new iCalendar file
+     *
+     * @param form The root of the event form
+     */
+    private static void exportToNew(Parent form){
+        //DEBUG: print message
+        if(debug){
+            System.out.println("\"Export to new\" button pressed");
+        }
+
+        //Convert the form to events
+        List<Event> events = convert(form);
+
+        events.stream()
+            .map(Event::toEntry)
+            .forEach(System.out::println);
+
+        //TODO properly implement
+    }
+
+    /**
+     * Resets the event form
+     *
+     * @param form The root of the event form
+     */
+    private static void reset(Parent form){
+        //DEBUG: print message
+        if(debug){
+            System.out.println("\"Reset\" button pressed");
+        }
+
+        //Reset the title
+        ((TextField) form.lookup("#title")).setText("Untitled event");
+
+        //Reset the start date
+        ((DatePicker) form.lookup("#start-date")).setValue(NOW_DATE);
+
+        //Reset the end date
+        ((DatePicker) form.lookup("#end-date")).setValue(NOW_DATE);
+
+        //Reset the start time
+        ((TextField) form.lookup("#start-time")).setText(NOW_TIME.format(TIME_FORMAT));
+
+        //Reset the end time
+        ((TextField) form.lookup("#end-time")).setText(NOW_TIME.plusHours(1).format(TIME_FORMAT));
+
+        //Reset the location
+        ((TextField) form.lookup("#location")).setText("");
+
+        //Reset the description
+        ((TextArea) form.lookup("#description")).setText("");
+
+        //Reset the repeat values for each day
+        ((CheckBox) form.lookup("#box-mo")).setSelected(false);
+        ((CheckBox) form.lookup("#box-tu")).setSelected(false);
+        ((CheckBox) form.lookup("#box-we")).setSelected(false);
+        ((CheckBox) form.lookup("#box-th")).setSelected(false);
+        ((CheckBox) form.lookup("#box-fr")).setSelected(false);
+        ((CheckBox) form.lookup("#box-sa")).setSelected(false);
+        ((CheckBox) form.lookup("#box-su")).setSelected(false);
+
+        //Reset the repeat from date
+        ((DatePicker) form.lookup("#repetition-start")).setValue(NOW_DATE);
+
+        //Reset the repeat to date
+        ((DatePicker) form.lookup("#repetition-end")).setValue(NOW_DATE.plusWeeks(1));
+    }
+
+    /**
+     * Exports the event(s) into an existing iCalendar file
+     *
+     * @param form The root of the event form
+     */
+    private static void exportToExisting(Parent form){
+        //DEBUG: print message
+        if(debug){
+            System.out.println("\"Export to existing\" button pressed");
+        }
+
+        //TODO implement
     }
 }
