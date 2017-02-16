@@ -11,9 +11,12 @@ import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.util.StringConverter;
 
+import java.io.File;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
@@ -60,6 +63,8 @@ public class Launcher extends Application {
 
     /** Whether debug mode is enabled */
     public static boolean debug = false;
+    /** The main window */
+    private Stage window;
 
     /**
      * Parses the command line arguments and launches the gui
@@ -82,6 +87,9 @@ public class Launcher extends Application {
 
     @Override
     public void start(Stage primaryStage) {
+        //Set the window member
+        window = primaryStage;
+
         //Prepare the main pane
         StackPane root = new StackPane();
         root.setPadding(new Insets(10));
@@ -102,7 +110,7 @@ public class Launcher extends Application {
      *
      * @return The event form scene graph
      */
-    public static Node buildEventForm(){
+    public Node buildEventForm(){
         //Prepare the result
         GridPane result = new GridPane();
         result.setAlignment(Pos.CENTER);
@@ -382,20 +390,33 @@ public class Launcher extends Application {
      *
      * @param form The root of the event form
      */
-    private static void exportToNew(Parent form){
+    private void exportToNew(Parent form){
         //DEBUG: print message
         if(debug){
             System.out.println("\"Export to new\" button pressed");
         }
 
+        //Select the new file
+        FileChooser fc = new FileChooser();
+        fc.setTitle("Save iCalendar");
+        fc.setInitialDirectory(Paths.get(System.getProperty("user.home")).toFile());
+        File file = fc.showSaveDialog(window);
+        if(file == null) return;        //Skip on cancel
+        Calendar cal = Calendar.createFile(file.toPath());
+
+        //Check calendar exists
+        if(cal == null){
+            //Case: calendar was not loaded
+            System.out.println("Calendar could not be loaded.");
+            return;
+        }
+
         //Convert the form to events
         List<Event> events = convert(form);
 
-        events.stream()
-            .map(Event::toEntry)
-            .forEach(System.out::println);
-
-        //TODO properly implement
+        //Write to the calendar
+        cal.addEvents(events.toArray(new Event[0]));
+        cal.save();
     }
 
     /**
@@ -451,12 +472,31 @@ public class Launcher extends Application {
      *
      * @param form The root of the event form
      */
-    private static void exportToExisting(Parent form){
+    private void exportToExisting(Parent form){
         //DEBUG: print message
         if(debug){
             System.out.println("\"Export to existing\" button pressed");
         }
 
-        //TODO implement
+        //Select the file
+        FileChooser fc = new FileChooser();
+        fc.setTitle("Open iCalendar");
+        fc.setInitialDirectory(Paths.get(System.getProperty("user.home")).toFile());
+        File file = fc.showOpenDialog(window);
+        if(file == null) return;        //Skip on cancel
+        Calendar cal = null;
+        try {
+            cal = new Calendar(file.toPath());
+        }catch(IllegalArgumentException e){
+            System.out.println("Calendar could not be loaded.");
+            return;
+        }
+
+        //Convert the form to events
+        List<Event> events = convert(form);
+
+        //Write to the calendar
+        cal.addEvents(events.toArray(new Event[0]));
+        cal.save();
     }
 }

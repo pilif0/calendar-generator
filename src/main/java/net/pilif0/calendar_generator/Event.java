@@ -63,12 +63,12 @@ public class Event {
                 .append("DTSTAMP:").append(getCreationDatetime()).append(System.lineSeparator())
                 .append("UID:").append(getUID()).append(System.lineSeparator())
                 .append("CREATED:").append(getCreationDatetime()).append(System.lineSeparator())
-                .append("DESCRIPTION:").append(System.lineSeparator())
+                .append("DESCRIPTION:").append(getDescription()).append(System.lineSeparator())
                 .append("LAST-MODIFIED:").append(getCreationDatetime()).append(System.lineSeparator())
                 .append("LOCATION:").append(getLocation()).append(System.lineSeparator())
                 .append("SEQUENCE:0").append(System.lineSeparator())
                 .append("STATUS:CONFIRMED").append(System.lineSeparator())
-                .append("SUMMARY:").append(getDescription()).append(System.lineSeparator())
+                .append("SUMMARY:").append(getTitle()).append(System.lineSeparator())
                 .append("TRANSP:TRANSPARENT").append(System.lineSeparator())
                 .append("END:VEVENT");
 
@@ -121,7 +121,7 @@ public class Event {
     }
 
     /**
-     * Formats the location String to be printed into the iCalendar file
+     * Formats the description String to be printed into the iCalendar file
      *
      * @return The formatted String
      */
@@ -130,12 +130,19 @@ public class Event {
     }
 
     /**
+     * Formats the title String to be printed into the iCalendar file
+     *
+     * @return The formatted String
+     */
+    private String getTitle(){ return title; }
+
+    /**
      * Generates the UID (using creation timestamp)
      *
      * @return The UID
      */
     private String getUID(){
-        return creation.toEpochSecond(ZoneOffset.UTC) + "@pilif0.net";
+        return System.nanoTime() + "@pilif0.net";
     }
 
 }
