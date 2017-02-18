@@ -170,7 +170,8 @@ public class Launcher extends Application {
         Tooltip startT = new Tooltip();
         startT.setText("Event start date and time\n" +
                 "Time has to be in hh:mm:ss format (24 hour)\n" +
-                "Date is not used when repetition is enabled");
+                "Date is not used when repetition is enabled\n" +
+                "Event duration is preserved even in repetition");
         startL.setTooltip(startT);
 
         //Create start date input
@@ -191,7 +192,8 @@ public class Launcher extends Application {
         Tooltip endT = new Tooltip();
         endT.setText("Event end date and time\n" +
                 "Time has to be in hh:mm:ss format (24 hour)\n" +
-                "Date is not used when repetition is enabled");
+                "Date is not used when repetition is enabled\n" +
+                "Event duration is preserved even in repetition");
         endL.setTooltip(endT);
 
         //Create end date input
@@ -247,7 +249,8 @@ public class Launcher extends Application {
         Tooltip repetitionStartT = new Tooltip();
         repetitionStartT.setText("Repetition start date (inclusive)\n" +
                 "Applies when at least one repetition day is set\n" +
-                "Overrides the event date when used");
+                "Overrides the event date when used\n" +
+                "Event duration is preserved");
         repetitionStartL.setTooltip(repetitionStartT);
 
         //Create repetition start date input
@@ -263,7 +266,8 @@ public class Launcher extends Application {
         Tooltip repetitionEndT = new Tooltip();
         repetitionEndT.setText("Repetition end date (exclusive)\n" +
                 "Applies when at least one repetition day is set\n" +
-                "Overrides the event date when used");
+                "Overrides the event date when used\n" +
+                "Event duration is preserved");
         repetitionEndL.setTooltip(repetitionEndT);
 
         //Create repetition end date input
@@ -298,6 +302,26 @@ public class Launcher extends Application {
 
         //Iterate row again because of row span of description
         row++;
+
+        //Add separation row
+        Label empty3 = new Label();
+        result.addRow(++row, empty3);
+
+        //Add transparency selection label
+        Label transparencyL = new Label("Transparency: ");
+        result.add(transparencyL, 0, ++row, 1, 1);
+
+        //Add transparency radio buttons
+        RadioButton transparencyAvail = new RadioButton("Available");
+        transparencyAvail.setId("transparency-available");
+        RadioButton transparencyBusy = new RadioButton("Busy");
+        transparencyBusy.setId("transparency-busy");
+        ToggleGroup transparencyGroup = new ToggleGroup();
+        transparencyAvail.setToggleGroup(transparencyGroup);
+        transparencyBusy.setToggleGroup(transparencyGroup);
+        transparencyAvail.setSelected(true);
+        result.add(transparencyAvail, 1, row, 1, 1);
+        result.add(transparencyBusy, 1, ++row, 1, 1);
 
         //Add reset button
         Button resetB = new Button("Reset");
@@ -368,6 +392,9 @@ public class Launcher extends Application {
         //Find the repeat to date
         LocalDate repeatTo = ((DatePicker) root.lookup("#repetition-end")).getValue();
 
+        //Find the transparency
+        boolean available = ((RadioButton) root.lookup("#transparency-available")).isSelected();
+
         //DEBUG: print the data
         if(debug) {
             String debugMsg = (new StringBuilder("[DEBUG] Form -> Event conversion:")).append(System.lineSeparator())
@@ -381,6 +408,7 @@ public class Launcher extends Application {
                     .append("Repeat: ").append(Arrays.toString(repeat)).append(System.lineSeparator())
                     .append("Repeat start date: ").append(DATE_FORMAT.format(repeatFrom)).append(System.lineSeparator())
                     .append("Repeat end date: ").append(DATE_FORMAT.format(repeatTo)).append(System.lineSeparator())
+                    .append("Transparency: ").append((available) ? "Available" : "Busy").append(System.lineSeparator())
                     .toString();
             System.out.println(debugMsg);
         }
@@ -406,7 +434,8 @@ public class Launcher extends Application {
                             startTime,
                             endTime,
                             location,
-                            description);
+                            description,
+                            available);
                     result.add(event);
                 }
 
@@ -422,7 +451,8 @@ public class Launcher extends Application {
                     startTime,
                     endTime,
                     location,
-                    description);
+                    description,
+                    available);
             result.add(event);
         }
 

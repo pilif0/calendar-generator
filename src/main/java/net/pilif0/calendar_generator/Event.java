@@ -29,6 +29,8 @@ public class Event {
     public final LocalDateTime creation = LocalDateTime.now();
     /** The event description */
     public final String description;
+    /** The event transparency */
+    public final boolean available;
 
     /**
      * Constructs the event from its information
@@ -39,7 +41,8 @@ public class Event {
                  LocalTime startTime,
                  LocalTime endTime,
                  String location,
-                 String description) {
+                 String description,
+                 boolean available) {
         this.title = title;
         this.startDate = startDate;
         this.endDate = endDate;
@@ -47,6 +50,7 @@ public class Event {
         this.endTime = endTime;
         this.location = location;
         this.description = description;
+        this.available = available;
     }
 
     /**
@@ -69,7 +73,7 @@ public class Event {
                 .append("SEQUENCE:0").append(System.lineSeparator())
                 .append("STATUS:CONFIRMED").append(System.lineSeparator())
                 .append("SUMMARY:").append(getTitle()).append(System.lineSeparator())
-                .append("TRANSP:TRANSPARENT").append(System.lineSeparator())
+                .append("TRANSP:").append((available) ? "TRANSPARENT" : "OPAQUE").append(System.lineSeparator())
                 .append("END:VEVENT");
 
         return result.toString();
@@ -126,7 +130,7 @@ public class Event {
      * @return The formatted String
      */
     private String getDescription(){
-        return description;
+        return description.replace("\n", "\\n");
     }
 
     /**
