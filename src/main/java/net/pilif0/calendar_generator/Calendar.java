@@ -53,7 +53,7 @@ public class Calendar {
 
         //DEBUG: print read note
         if(Launcher.debug){
-            System.out.printf("Reading calendar from \'%s\'\n", path);
+            System.out.printf("[DEBUG] Reading calendar from \'%s\'\n", path);
         }
 
         //Read the file contents
@@ -104,7 +104,7 @@ public class Calendar {
 
         //DEBUG: print prefix and suffix (skip events because that is usually long)
         if(Launcher.debug){
-            String msg = (new StringBuilder("iCalendar file read:")).append(System.lineSeparator())
+            String msg = (new StringBuilder("[DEBUG] iCalendar file read:")).append(System.lineSeparator())
                     .append(" - Prefix:").append(System.lineSeparator())
                     .append(prefix).append(System.lineSeparator())
                     .append(" - Suffix:").append(System.lineSeparator())
@@ -126,7 +126,7 @@ public class Calendar {
         } catch (IOException e) {
             //DEBUG: print message
             if(Launcher.debug) {
-                System.out.printf("Calendar file could not be read (%s).\n", e.getLocalizedMessage());
+                System.out.printf("[DEBUG] Calendar file could not be read (%s).\n", e.getLocalizedMessage());
             }
             return null;
         }
@@ -170,14 +170,14 @@ public class Calendar {
     public static Calendar createFile(Path file){
         //DEBUG: print creation note
         if(Launcher.debug){
-            System.out.printf("Creating calendar at \'%s\'\n", file);
+            System.out.printf("[DEBUG] Creating calendar at \'%s\'\n", file);
         }
 
         //Create the file
         try {
             file.toFile().createNewFile();
         } catch (IOException e) {
-            System.out.printf("Calendar file could not be created (%s).\n", e.getLocalizedMessage());
+            System.out.printf("[ERROR] Calendar file could not be created (%s).\n", e.getLocalizedMessage());
             return null;
         }
 
@@ -185,7 +185,7 @@ public class Calendar {
         try {
             Files.write(file, EMPTY_FILE.getBytes());
         } catch (IOException e) {
-            System.out.printf("Calendar file could not be written to (%s).\n", e.getLocalizedMessage());
+            System.out.printf("[ERROR] Calendar file could not be written to (%s).\n", e.getLocalizedMessage());
             return null;
         }
 

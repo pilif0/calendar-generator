@@ -6,7 +6,7 @@
 
     <groupId>net.pilif0</groupId>
     <artifactId>calendar-generator</artifactId>
-    <version>0.1</version>
+    <version>0.2-SNAPSHOT</version>
     <build>
         <plugins>
             <plugin>

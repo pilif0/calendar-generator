@@ -7,10 +7,8 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.layout.ColumnConstraints;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.StackPane;
+import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.util.StringConverter;
@@ -60,11 +58,19 @@ public class Launcher extends Application {
             return LocalDate.parse(string, DATE_FORMAT);
         }
     };
+    /** The style for displaying an error in the status bar */
+    public static final String STYLE_ERROR = "-fx-color: red;";
+    /** The style for displaying info in the status bar */
+    public static final String STYLE_INFO = "-fx-color: black;";
+    /** The style for displaying success in the status bar */
+    public static final String STYLE_SUCCESS = "-fx-color: green;";
 
     /** Whether debug mode is enabled */
     public static boolean debug = false;
     /** The main window */
     private Stage window;
+    /** The status message display label */
+    private Label statusMsg;
 
     /**
      * Parses the command line arguments and launches the gui
@@ -90,19 +96,38 @@ public class Launcher extends Application {
         //Set the window member
         window = primaryStage;
 
-        //Prepare the main pane
-        StackPane root = new StackPane();
-        root.setPadding(new Insets(10));
+        //Prepare the root node
+        BorderPane root = new BorderPane();
+
+        //Prepare the form pane
+        StackPane form = new StackPane();
+        form.setPadding(new Insets(10));
 
         //Fill the scroll pane
-        root.getChildren().add(buildEventForm());
+        form.getChildren().add(buildEventForm());
+
+        //Prepare the status bar (show latest message)
+        statusMsg = new Label();
+        HBox statusBar = new HBox(statusMsg);
+        statusBar.setStyle(
+                "-fx-border-style: solid none none none; " +
+                        "-fx-border-color: lightgrey; " +
+                        "-fx-padding: 0.2em; " +
+                        "-fx-margin: 0.5em 0 0 0;");
+
+        //Fill the root node
+        root.setCenter(form);
+        root.setBottom(statusBar);
 
         //Finalize the window
-        Scene scene = new Scene(root/*, WIDTH, HEIGHT*/);
+        Scene scene = new Scene(root);
         primaryStage.setScene(scene);
         primaryStage.setTitle(TITLE);
-        primaryStage.sizeToScene();     //TODO remove this when done and set proper WIDTH and HEIGHT
+        primaryStage.sizeToScene();
         primaryStage.show();
+
+        //Display done message
+        displayInfo("Done");
     }
 
     /**
@@ -321,7 +346,7 @@ public class Launcher extends Application {
 
         //DEBUG: print the data
         if(debug) {
-            String debugMsg = (new StringBuilder("Form -> Event conversion:")).append(System.lineSeparator())
+            String debugMsg = (new StringBuilder("[DEBUG] Form -> Event conversion:")).append(System.lineSeparator())
                     .append("Title: ").append(title).append(System.lineSeparator())
                     .append("Start date: ").append(DATE_FORMAT.format(startDate)).append(System.lineSeparator())
                     .append("Start time: ").append(TIME_FORMAT.format(startTime)).append(System.lineSeparator())
@@ -379,7 +404,7 @@ public class Launcher extends Application {
 
         //DEBUG: print number of events created
         if(debug){
-            System.out.printf("Converted form into %d event(s)\n", result.size());
+            System.out.printf("\nConverted form into %d event(s)\n", result.size());
         }
 
         return result;
@@ -393,13 +418,14 @@ public class Launcher extends Application {
     private void exportToNew(Parent form){
         //DEBUG: print message
         if(debug){
-            System.out.println("\"Export to new\" button pressed");
+            System.out.println("[DEBUG] \"Export to new\" button pressed");
         }
 
         //Select the new file
         FileChooser fc = new FileChooser();
         fc.setTitle("Save iCalendar");
         fc.setInitialDirectory(Paths.get(System.getProperty("user.home")).toFile());
+        fc.setInitialFileName("calendar.ics");
         File file = fc.showSaveDialog(window);
         if(file == null) return;        //Skip on cancel
         Calendar cal = Calendar.createFile(file.toPath());
@@ -407,7 +433,7 @@ public class Launcher extends Application {
         //Check calendar exists
         if(cal == null){
             //Case: calendar was not loaded
-            System.out.println("Calendar could not be loaded.");
+            displayError("Calendar could not be loaded.");
             return;
         }
 
@@ -416,7 +442,11 @@ public class Launcher extends Application {
 
         //Write to the calendar
         cal.addEvents(events.toArray(new Event[0]));
-        cal.save();
+        if(cal.save()){
+            displaySuccess("Events saved to \'"+file.getAbsolutePath()+"\'.");
+        }else{
+            displayError("Could not saved events to \'" + file.getAbsolutePath() + "\'.");
+        }
     }
 
     /**
@@ -427,7 +457,7 @@ public class Launcher extends Application {
     private static void reset(Parent form){
         //DEBUG: print message
         if(debug){
-            System.out.println("\"Reset\" button pressed");
+            System.out.println("[DEBUG] \"Reset\" button pressed");
         }
 
         //Reset the title
@@ -475,20 +505,21 @@ public class Launcher extends Application {
     private void exportToExisting(Parent form){
         //DEBUG: print message
         if(debug){
-            System.out.println("\"Export to existing\" button pressed");
+            System.out.println("[DEBUG] \"Export to existing\" button pressed");
         }
 
         //Select the file
         FileChooser fc = new FileChooser();
         fc.setTitle("Open iCalendar");
         fc.setInitialDirectory(Paths.get(System.getProperty("user.home")).toFile());
+        fc.setInitialFileName("calendar.ics");
         File file = fc.showOpenDialog(window);
         if(file == null) return;        //Skip on cancel
         Calendar cal = null;
         try {
             cal = new Calendar(file.toPath());
         }catch(IllegalArgumentException e){
-            System.out.println("Calendar could not be loaded.");
+            displayError("Calendar could not be loaded.");
             return;
         }
 
@@ -497,6 +528,47 @@ public class Launcher extends Application {
 
         //Write to the calendar
         cal.addEvents(events.toArray(new Event[0]));
-        cal.save();
+        if(cal.save()){
+            displaySuccess("Events saved to \'"+file.getAbsolutePath()+"\'.");
+        }else{
+            displayError("Could not saved events to \'" + file.getAbsolutePath() + "\'.");
+        }
     }
+
+    /**
+     * Displays an error message in the status bar
+     *
+     * @param msg The message to display
+     */
+    public void displayError(String msg){
+        statusMsg.setTextFill(Color.RED);
+        statusMsg.setText(msg);
+
+        //Print to console when in debug
+        if(debug){
+            System.out.println("[ERROR] " + msg);
+        }
+    }
+
+    /**
+     * Displays an info message in the status bar
+     *
+     * @param msg The message to display
+     */
+    public void displayInfo(String msg){
+        statusMsg.setTextFill(Color.BLACK);
+        statusMsg.setText(msg);
+    }
+
+    /**
+     * Displays an success message in the status bar
+     *
+     * @param msg The message to display
+     */
+    public void displaySuccess(String msg){
+        statusMsg.setTextFill(Color.GREEN);
+        statusMsg.setText(msg);
+    }
+
+
 }
