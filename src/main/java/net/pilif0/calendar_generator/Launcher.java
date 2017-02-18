@@ -127,7 +127,7 @@ public class Launcher extends Application {
         primaryStage.show();
 
         //Display done message
-        displayInfo("Done");
+        displayInfo("Hover over field labels for help");
     }
 
     /**
@@ -165,8 +165,13 @@ public class Launcher extends Application {
         titleField.requestFocus();
         result.add(titleField, 1, row, 3, 1);
 
-        //Create start datetime label
+        //Create start datetime label and give it a tooltip
         Label startL = new Label("Start:");
+        Tooltip startT = new Tooltip();
+        startT.setText("Event start date and time\n" +
+                "Time has to be in hh:mm:ss format (24 hour)\n" +
+                "Date is not used when repetition is enabled");
+        startL.setTooltip(startT);
 
         //Create start date input
         DatePicker startDate = new DatePicker(NOW_DATE);
@@ -181,8 +186,13 @@ public class Launcher extends Application {
         //Add start datetime row
         result.addRow(++row, startL, startDate, startTime);
 
-        //Create start datetime label
+        //Create start datetime label and give it a tooltip
         Label endL = new Label("End:");
+        Tooltip endT = new Tooltip();
+        endT.setText("Event end date and time\n" +
+                "Time has to be in hh:mm:ss format (24 hour)\n" +
+                "Date is not used when repetition is enabled");
+        endL.setTooltip(endT);
 
         //Create end date input
         DatePicker endDate = new DatePicker(NOW_DATE);
@@ -203,6 +213,10 @@ public class Launcher extends Application {
 
         //Add repetition label
         Label repetitionL = new Label("Repetition:");
+        Tooltip repetitionT = new Tooltip();
+        repetitionT.setText("Tick days on which to repeat\n" +
+                "When at least one set, repetition date will override event date");
+        repetitionL.setTooltip(repetitionT);
         result.add(repetitionL, 0, ++row);
 
         //Add a checkbox for each day of the week
@@ -230,6 +244,11 @@ public class Launcher extends Application {
 
         //Create repetition start date label
         Label repetitionStartL = new Label("From:");
+        Tooltip repetitionStartT = new Tooltip();
+        repetitionStartT.setText("Repetition start date (inclusive)\n" +
+                "Applies when at least one repetition day is set\n" +
+                "Overrides the event date when used");
+        repetitionStartL.setTooltip(repetitionStartT);
 
         //Create repetition start date input
         DatePicker repetitionStart = new DatePicker(NOW_DATE);
@@ -241,6 +260,11 @@ public class Launcher extends Application {
 
         //Create repetition end date label
         Label repetitionEndL = new Label("To:");
+        Tooltip repetitionEndT = new Tooltip();
+        repetitionEndT.setText("Repetition end date (exclusive)\n" +
+                "Applies when at least one repetition day is set\n" +
+                "Overrides the event date when used");
+        repetitionEndL.setTooltip(repetitionEndT);
 
         //Create repetition end date input
         DatePicker repetitionEnd = new DatePicker(NOW_DATE.plusWeeks(1));
